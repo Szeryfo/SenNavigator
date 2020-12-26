@@ -26,18 +26,6 @@ import com.google.android.gms.tasks.Task;
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "MapActivity";
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(this, "Wyświetlenie mapy", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "onMapReady: Wyświetlenie mapy");
-        mMap = googleMap;
-
-        if(mLocationPermissionGranted) {
-            getDeviceLocation();
-        }
-    }
-
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -46,6 +34,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Boolean mLocationPermissionGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Toast.makeText(this, "Wyświetlenie mapy", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "onMapReady: Wyświetlenie mapy");
+        mMap = googleMap;
+
+        if (mLocationPermissionGranted) {
+            getDeviceLocation();
+
+            if (ActivityCompat.checkSelfPermission(this, FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+        }
+    }
 
 
     @Override
