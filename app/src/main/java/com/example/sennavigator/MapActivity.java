@@ -3,6 +3,7 @@ package com.example.sennavigator;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -31,6 +32,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
@@ -51,6 +54,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
 
+    private LatLng latLng;
+    private Polyline polyline;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +65,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getLocationPermission();
     }
 
-    public void closeKeyboard(){
+    public void closeKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
     }
@@ -68,7 +74,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "init: initalizacja");
 
         searchText.setOnEditorActionListener((v, actionId, event) -> {
-            if(actionId == EditorInfo.IME_ACTION_SEARCH
+            if (actionId == EditorInfo.IME_ACTION_SEARCH
                     || actionId == EditorInfo.IME_ACTION_DONE
                     || event.getAction() == KeyEvent.ACTION_DOWN
                     || event.getAction() == KeyEvent.KEYCODE_ENTER) {
@@ -94,16 +100,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             list = geocoder.getFromLocationName(search, 1);
 
         } catch (IOException e) {
-            Log.e(TAG, "geoLocate: IOException " + e.getMessage() );
+            Log.e(TAG, "geoLocate: IOException " + e.getMessage());
         }
 
-        if(list.size() > 0) {
+        if (list.size() > 0) {
             Address address = list.get(0);
 
             Log.d(TAG, "geoLocate: Znaleziono adres: " + address.toString());
-           // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
 
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), ZOOM, address.getAddressLine(0));
+            drawLine(new LatLng(address.getLatitude(), address.getLongitude()));
         }
 
     }
@@ -140,14 +147,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         try {
-            if(mLocationPermissionGranted) {
+            if (mLocationPermissionGranted) {
                 Task location = fusedLocationProviderClient.getLastLocation();
                 location.addOnCompleteListener(task -> {
-                    if(task.isSuccessful()) {
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "onComplete: Znaleziono lokalizację");
                         Location currentLocation = (Location) task.getResult();
-                        if(currentLocation != null) {
+                        if (currentLocation != null) {
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), ZOOM, "Moja lokalizacja");
+                            latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                         }
                     } else {
                         Log.d(TAG, "onComplete: Nie znaleziono lokalizacji");
@@ -165,14 +173,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "getLocationPermission: Pobranie Uprawnień do lokalizacji");
         String[] permissions = {FINE_LOCATION, COARSE_LOCATION};
 
-        if(ContextCompat.checkSelfPermission(this.getApplicationContext(), FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-            if(ContextCompat.checkSelfPermission(this.getApplicationContext(), COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this.getApplicationContext(), COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionGranted = true;
                 initMap();
-            } else{
+            } else {
                 ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
             }
-        } else{
+        } else {
             ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
@@ -181,7 +189,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "moveCamera: Przeniesienie kamery na: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
-        if(!title.equals("Moja lokalizacja")){
+        if (!title.equals("Moja lokalizacja")) {
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(latLng)
                     .title(title);
@@ -194,11 +202,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "onRequestPermissionsResult: Pobranie Uprawnień do lokalizacji");
         mLocationPermissionGranted = false;
 
-        switch (requestCode){
-            case LOCATION_PERMISSION_REQUEST_CODE:{
-                if(grantResults.length > 0){
-                    for (int i = 0; i < grantResults.length; i++){
-                        if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
+        switch (requestCode) {
+            case LOCATION_PERMISSION_REQUEST_CODE: {
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < grantResults.length; i++) {
+                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             Log.d(TAG, "onRequestPermissionsResult: nieudane podanie uprawnień");
                             mLocationPermissionGranted = false;
                             return;
@@ -211,4 +219,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
+    private void drawLine(LatLng latLng1) {
+
+        if(polyline != null) {
+            polyline.remove();
+        }
+
+        polyline = googleMap.addPolyline(new PolylineOptions()
+        .add(latLng,latLng1)
+        .width(7)
+        .color(Color.BLUE));
+    }
+
 }
