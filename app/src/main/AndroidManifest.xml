@@ -32,6 +32,15 @@
         <activity android:name=".SettingsActivity">
 
         </activity>
+        <activity
+            android:name=".PlanningActivity"
+            android:label="@string/title_activity_maps">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

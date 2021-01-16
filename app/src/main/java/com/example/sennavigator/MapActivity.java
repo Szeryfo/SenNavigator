@@ -62,7 +62,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-        searchText = (AutoCompleteTextView) findViewById(R.id.input_search);
+        searchText = findViewById(R.id.input_search);
         getLocationPermission();
     }
 
@@ -113,7 +113,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), ZOOM, address.getAddressLine(0));
             drawLine(new LatLng(address.getLatitude(), address.getLongitude()));
         }
-
     }
 
     @Override
@@ -137,6 +136,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 if (listPoints.size() == 2) {
                     listPoints.clear();
                     googleMap.clear();
+                    return;
                 }
 
                 listPoints.add(latLng);

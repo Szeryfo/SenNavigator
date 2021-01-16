@@ -28,5 +28,11 @@ public class MainActivity extends FragmentActivity {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
+
+        Button btnPlanningMap = findViewById(R.id.btnPlanowanie);
+        btnPlanningMap.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PlanningActivity.class);
+            startActivity(intent);
+        });
     }
 }
