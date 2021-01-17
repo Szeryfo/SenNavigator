@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -31,12 +32,11 @@ import java.util.List;
 public class PlanningActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "PlanningActivity";
-    private static final float ZOOM = 15f;
-    private static final LatLng latLng = new LatLng(54.19,16.18);
+    private static final float ZOOM = 12f;
+    private static final LatLng latLng = new LatLng(54.19, 16.18);
 
     private AutoCompleteTextView searchText;
 
-    private Boolean mLocationPermissionGranted = false;
     private GoogleMap googleMap;
 
     @Override
@@ -44,23 +44,22 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_planning);
         searchText = findViewById(R.id.input_search);
+        initMap();
     }
 
     @Override
     public void onMapReady(GoogleMap gMap) {
         Toast.makeText(this, "Wyświetlenie mapy", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "onMapReady: Wyświetlenie mapy");
-        googleMap = gMap;
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
-        //do ogarnienia..
-            init();
 
+        googleMap = gMap;
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
+        init();
     }
 
     private void init() {
         Log.d(TAG, "init: initalizacja");
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
-
         searchText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH
                     || actionId == EditorInfo.IME_ACTION_DONE
@@ -74,6 +73,12 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
             Log.d(TAG, "setOnFocusChangeListener");
             this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         });
+    }
+    private void initMap() {
+        Log.d(TAG, "initMap: Initializacja mapy");
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.planning_map);
+        mapFragment.getMapAsync(PlanningActivity.this);
     }
 
     private void geoLocate() {
