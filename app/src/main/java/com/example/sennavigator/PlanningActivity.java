@@ -1,8 +1,7 @@
 package com.example.sennavigator;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -16,14 +15,16 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +38,12 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
     private AutoCompleteTextView searchText;
 
+    private final ArrayList<LatLng> listPoints = new ArrayList<>();
+    private MarkerOptions markerOptions;
+    private Polyline polyline;
+
     private GoogleMap googleMap;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,6 +61,30 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         googleMap = gMap;
         googleMap.getUiSettings().setMyLocationButtonEnabled(false);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
+
+        markerOptions = new MarkerOptions();
+
+        // wybieranie lokacji
+        googleMap.setOnMapLongClickListener(latLng -> {
+            if (listPoints.size() == 2) {
+                listPoints.clear();
+                googleMap.clear();
+                return;
+            }
+
+            listPoints.add(latLng);
+
+            markerOptions.position(latLng);
+
+            if (listPoints.size() == 1) {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            } else {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                drawLine(listPoints.get(0),listPoints.get(1));
+            }
+            googleMap.addMarker(markerOptions);
+        });
+
         init();
     }
 
@@ -101,8 +131,23 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
             Log.d(TAG, "geoLocate: Znaleziono adres: " + address.toString());
             // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
+            if (listPoints.size() == 2) {
+                listPoints.clear();
+                googleMap.clear();
+            }
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), ZOOM, address.getAddressLine(0));
+            listPoints.add(new LatLng(address.getLatitude(), address.getLongitude()));
+            markerOptions.position(new LatLng(address.getLatitude(), address.getLongitude()));
+
+            if (listPoints.size() == 1) {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            } else {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                drawLine(listPoints.get(0),listPoints.get(1));
+            }
+            googleMap.addMarker(markerOptions);
+
+            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), address.getAddressLine(0));
         }
     }
 
@@ -111,9 +156,9 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
     }
 
-    private void moveCamera(LatLng latLng, float zoom, String title) {
+    private void moveCamera(LatLng latLng, String title) {
         Log.d(TAG, "moveCamera: Przeniesienie kamery na: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
 
         if (!title.equals("Moja lokalizacja")) {
             MarkerOptions markerOptions = new MarkerOptions()
@@ -121,5 +166,17 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
                     .title(title);
             googleMap.addMarker(markerOptions);
         }
+    }
+
+    private void drawLine(LatLng latLng, LatLng latLng1) {
+
+        if(polyline != null) {
+            polyline.remove();
+        }
+
+        polyline = googleMap.addPolyline(new PolylineOptions()
+                .add(latLng,latLng1)
+                .width(7)
+                .color(Color.BLUE));
     }
 }

@@ -51,11 +51,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private Boolean mLocationPermissionGranted = false;
     private GoogleMap googleMap;
-    private FusedLocationProviderClient fusedLocationProviderClient;
+    private Location currentLocation;
+    private final List<LatLng> listPoints = new ArrayList<>();
 
-    private ArrayList<LatLng> listPoints = new ArrayList<>();
-
-    private LatLng latLng;
+    private MarkerOptions markerOptions;
     private Polyline polyline;
 
     @Override
@@ -109,9 +108,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             Log.d(TAG, "geoLocate: Znaleziono adres: " + address.toString());
             // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
+            LatLng latLng  = new LatLng(address.getLatitude(), address.getLongitude());
+            listPoints.clear();
+            googleMap.clear();
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), ZOOM, address.getAddressLine(0));
-            drawLine(new LatLng(address.getLatitude(), address.getLongitude()));
+            listPoints.add(latLng);
+            markerOptions.position(latLng);
+
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            drawLine(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),latLng);
+
+            googleMap.addMarker(markerOptions);
+            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), address.getAddressLine(0));
         }
     }
 
@@ -120,6 +128,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Toast.makeText(this, "Wyświetlenie mapy", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "onMapReady: Wyświetlenie mapy");
         googleMap = gMap;
+        markerOptions = new MarkerOptions();
+
 
         if (mLocationPermissionGranted) {
             getDeviceLocation();
@@ -133,24 +143,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             // wybieranie lokacji
             googleMap.setOnMapLongClickListener(latLng -> {
-                if (listPoints.size() == 2) {
+                if (listPoints.size() == 1) {
                     listPoints.clear();
                     googleMap.clear();
-                    return;
-                }
-
-                listPoints.add(latLng);
-
-                MarkerOptions markerOptions = new MarkerOptions();
-                markerOptions.position(latLng);
-
-                if (listPoints.size() == 1) {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 } else {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    listPoints.add(latLng);
+                    markerOptions.position(latLng);
+
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    drawLine(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),listPoints.get(0));
+
+                    googleMap.addMarker(markerOptions);
                 }
-                googleMap.addMarker(markerOptions);
             });
+
             init();
         }
     }
@@ -164,7 +170,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: Pobranie aktualnej lokalizacji urządzenia");
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         try {
             if (mLocationPermissionGranted) {
@@ -172,10 +178,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 location.addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "onComplete: Znaleziono lokalizację");
-                        Location currentLocation = (Location) task.getResult();
+                        currentLocation = (Location) task.getResult();
                         if (currentLocation != null) {
-                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), ZOOM, "Moja lokalizacja");
-                            latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), "Moja lokalizacja");
                         }
                     } else {
                         Log.d(TAG, "onComplete: Nie znaleziono lokalizacji");
@@ -205,9 +210,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    private void moveCamera(LatLng latLng, float zoom, String title) {
+    private void moveCamera(LatLng latLng, String title) {
         Log.d(TAG, "moveCamera: Przeniesienie kamery na: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
 
         if (!title.equals("Moja lokalizacja")) {
             MarkerOptions markerOptions = new MarkerOptions()
@@ -222,25 +227,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "onRequestPermissionsResult: Pobranie Uprawnień do lokalizacji");
         mLocationPermissionGranted = false;
 
-        switch (requestCode) {
-            case LOCATION_PERMISSION_REQUEST_CODE: {
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < grantResults.length; i++) {
-                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            Log.d(TAG, "onRequestPermissionsResult: nieudane podanie uprawnień");
-                            mLocationPermissionGranted = false;
-                            return;
-                        }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                for (int grantResult : grantResults) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                        Log.d(TAG, "onRequestPermissionsResult: nieudane podanie uprawnień");
+                        mLocationPermissionGranted = false;
+                        return;
                     }
-                    Log.d(TAG, "onRequestPermissionsResult: udane podanie uprawnień");
-                    mLocationPermissionGranted = true;
-                    initMap();
                 }
+                Log.d(TAG, "onRequestPermissionsResult: udane podanie uprawnień");
+                mLocationPermissionGranted = true;
+                initMap();
             }
         }
     }
 
-    private void drawLine(LatLng latLng1) {
+    private void drawLine(LatLng latLng, LatLng latLng1) {
 
         if(polyline != null) {
             polyline.remove();
@@ -251,5 +254,4 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         .width(7)
         .color(Color.BLUE));
     }
-
 }
