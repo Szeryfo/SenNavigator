@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,8 +27,18 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class PlanningActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -64,26 +75,7 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
         markerOptions = new MarkerOptions();
 
-        // wybieranie lokacji
-        googleMap.setOnMapLongClickListener(latLng -> {
-            if (listPoints.size() == 2) {
-                listPoints.clear();
-                googleMap.clear();
-                return;
-            }
-
-            listPoints.add(latLng);
-
-            markerOptions.position(latLng);
-
-            if (listPoints.size() == 1) {
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            } else {
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                drawLine(listPoints.get(0),listPoints.get(1));
-            }
-            googleMap.addMarker(markerOptions);
-        });
+        googleMap.setOnMapLongClickListener(this::setPointsAndRoad);
 
         init();
     }
@@ -131,21 +123,7 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
             Log.d(TAG, "geoLocate: Znaleziono adres: " + address.toString());
             // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
-            if (listPoints.size() == 2) {
-                listPoints.clear();
-                googleMap.clear();
-            }
-
-            listPoints.add(new LatLng(address.getLatitude(), address.getLongitude()));
-            markerOptions.position(new LatLng(address.getLatitude(), address.getLongitude()));
-
-            if (listPoints.size() == 1) {
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            } else {
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                drawLine(listPoints.get(0),listPoints.get(1));
-            }
-            googleMap.addMarker(markerOptions);
+            setPointsAndRoad(new LatLng(address.getLatitude(), address.getLongitude()));
 
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), address.getAddressLine(0));
         }
@@ -167,16 +145,143 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
             googleMap.addMarker(markerOptions);
         }
     }
-
-    private void drawLine(LatLng latLng, LatLng latLng1) {
-
-        if(polyline != null) {
-            polyline.remove();
+    private void setPointsAndRoad(LatLng latLng) {
+        if (listPoints.size() == 2) {
+            listPoints.clear();
+            googleMap.clear();
+            return;
         }
 
-        polyline = googleMap.addPolyline(new PolylineOptions()
-                .add(latLng,latLng1)
-                .width(7)
-                .color(Color.BLUE));
+        listPoints.add(latLng);
+        markerOptions.position(latLng);
+        if (listPoints.size() == 1) {
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        } else {
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        }
+        googleMap.addMarker(markerOptions);
+
+        if(listPoints.size() == 2) {
+            String url = getRequestUrl(listPoints.get(0), listPoints.get(1));
+            TaskRequestDirections taskRequestDirections = new TaskRequestDirections();
+            taskRequestDirections.execute(url);
+        }
+    }
+
+    private String getRequestUrl(LatLng origin, LatLng dest) {
+        String str_org = "origin=" + origin.latitude + "," + origin.longitude;
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+        String sensor = "sensor=true";
+        String mode = "mode=walking";
+        String key = "key=" + getResources().getString(R.string.google_maps_key);
+        String param = str_org + "&" + str_dest + "&" + sensor + "&" + mode + "&" + key;
+        String output = "json";
+        return "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param;
+    }
+
+    private String requestDirection(String reqUrl) throws IOException {
+        String responseString = "";
+        InputStream inputStream = null;
+        HttpURLConnection httpURLConnection = null;
+        try {
+            URL url = new URL(reqUrl);
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.connect();
+
+            inputStream = httpURLConnection.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+            StringBuilder stringBuffer = new StringBuilder();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuffer.append(line);
+            }
+
+            responseString = stringBuffer.toString();
+            bufferedReader.close();
+            inputStreamReader.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            httpURLConnection.disconnect();
+        }
+        return responseString;
+    }
+
+    public class TaskRequestDirections extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String responseString = "";
+            try {
+                responseString = requestDirection(strings[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return responseString;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            TaskParser taskParser = new TaskParser();
+            taskParser.execute(s);
+        }
+    }
+
+    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>>> {
+
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
+            JSONObject jsonObject;
+            List<List<HashMap<String, String>>> routes = null;
+            try {
+                jsonObject = new JSONObject(strings[0]);
+                DirectionsJSONParser directionsJSONParser = new DirectionsJSONParser();
+                routes = directionsJSONParser.parse(jsonObject);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
+
+            ArrayList points;
+
+            PolylineOptions polylineOptions = null;
+
+            for (List<HashMap<String, String>> path : lists) {
+                points = new ArrayList();
+                polylineOptions = new PolylineOptions();
+
+                for (HashMap<String, String> point : path) {
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lon = Double.parseDouble(point.get("lng"));
+
+                    points.add(new LatLng(lat,lon));
+                }
+                polylineOptions.addAll(points);
+                polylineOptions.width(15);
+                polylineOptions.color(Color.BLUE);
+                polylineOptions.geodesic(true);
+            }
+
+            if (polylineOptions != null) {
+                googleMap.addPolyline(polylineOptions);
+            } else {
+                Toast.makeText(getApplicationContext(), "Nie znaleziono trasy", Toast.LENGTH_SHORT).show();
+            }
+
+
+            super.onPostExecute(lists);
+        }
     }
 }
