@@ -89,6 +89,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     || event.getAction() == KeyEvent.ACTION_DOWN
                     || event.getAction() == KeyEvent.KEYCODE_ENTER) {
                 geoLocate();
+                searchText.setText(null);
             }
             return false;
         });

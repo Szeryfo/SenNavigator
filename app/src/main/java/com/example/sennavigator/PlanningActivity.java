@@ -6,6 +6,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
@@ -88,6 +89,7 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
                     || event.getAction() == KeyEvent.ACTION_DOWN
                     || event.getAction() == KeyEvent.KEYCODE_ENTER) {
                 geoLocate();
+                searchText.setText(null);
             }
             return false;
         });
@@ -137,13 +139,6 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
     private void moveCamera(LatLng latLng, String title) {
         Log.d(TAG, "moveCamera: Przeniesienie kamery na: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
-
-        if (!title.equals("Moja lokalizacja")) {
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(latLng)
-                    .title(title);
-            googleMap.addMarker(markerOptions);
-        }
     }
     private void setPointsAndRoad(LatLng latLng) {
         if (listPoints.size() == 2) {
