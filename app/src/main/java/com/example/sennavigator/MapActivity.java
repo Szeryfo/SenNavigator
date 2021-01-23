@@ -33,9 +33,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
@@ -71,7 +69,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private final List<LatLng> listPoints = new ArrayList<>();
     private ArrayList<LatLng> values1 = new ArrayList<>();
 
-    private MarkerOptions markerOptions;
+    private MarkerOptions markerOptions = new MarkerOptions();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,10 +80,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String value = extras.getString("string");
-
             searchText.setText(value);
         }
-
     }
 
     public void closeKeyboard() {
@@ -159,7 +155,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             googleMap.setOnMapLongClickListener(this::setPointsAndRoad);
             googleMap.setOnMarkerClickListener(marker -> {
                 Intent intent = new Intent(MapActivity.this, MarkerActivity.class);
-                intent.putExtra("string", marker.getPosition());
+                intent.putExtra("pozycja", marker.getPosition());
                 startActivity(intent);
                 return false;
             });
@@ -254,7 +250,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             googleMap.clear();
             return;
         }
-        addDataToList(latLng);
+      //  addDataToList(latLng);
 
         listPoints.add(latLng);
         markerOptions.position(latLng);
