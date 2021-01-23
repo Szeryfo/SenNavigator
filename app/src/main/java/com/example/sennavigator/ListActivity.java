@@ -3,12 +3,12 @@ package com.example.sennavigator;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class ListActivity extends AppCompatActivity {
 
      ListView listView;
-     ArrayList<LatLng> values1 = new ArrayList<>();
+     ArrayList<DataList> values1 = new ArrayList<>();
 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
@@ -29,15 +29,17 @@ public class ListActivity extends AppCompatActivity {
 
           loadDataList();
 
-          ArrayAdapter<LatLng> arrayAdapter = new ArrayAdapter<>(this,
+          ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
                   android.R.layout.simple_list_item_1,
-                  android.R.id.text1, values1);
-
+                  android.R.id.text1);
+          for (DataList dataList: values1) {
+               arrayAdapter.add(dataList.getNazwa());
+          }
           listView.setAdapter(arrayAdapter);
 
           listView.setOnItemClickListener((parent, view, position, id) -> {
                     Intent intent = new Intent(view.getContext(), MapActivity.class);
-                    intent.putExtra("string", values1.get((int) id).toString());
+                    intent.putExtra("DataList", values1.get((int)id));
                     startActivity(intent);
 
           });
@@ -46,7 +48,7 @@ public class ListActivity extends AppCompatActivity {
           SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
           Gson gson = new Gson();
           String json = sharedPreferences.getString("list", null);
-          Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
+          Type type = new TypeToken<ArrayList<DataList>>() {}.getType();
           values1 = gson.fromJson(json, type);
      }
 }

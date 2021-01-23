@@ -3,7 +3,6 @@ package com.example.sennavigator;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -79,8 +78,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getLocationPermission();
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String value = extras.getString("string");
-            searchText.setText(value);
+            DataList dataList = (DataList) extras.get("DataList");
+            searchText.setText(dataList.getNazwa());
         }
     }
 
@@ -250,7 +249,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             googleMap.clear();
             return;
         }
-      //  addDataToList(latLng);
 
         listPoints.add(latLng);
         markerOptions.position(latLng);
@@ -379,24 +377,4 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             super.onPostExecute(lists);
         }
      }
-    private void loadDataList() {
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString("list", null);
-        Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
-        values1 = gson.fromJson(json, type);
-    }
-
-    private void addDataToList(LatLng latLng) {
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-
-        loadDataList();
-        values1.add(latLng);
-
-        String json = gson.toJson(values1);
-        editor.putString("list", json);
-        editor.apply();
-    }
 }
