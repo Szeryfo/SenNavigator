@@ -65,7 +65,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private final List<LatLng> listPoints = new ArrayList<>();
 
     private MarkerOptions markerOptions;
-    private Polyline polyline;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,6 +72,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
         searchText = findViewById(R.id.input_search);
         getLocationPermission();
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String value = extras.getString("string");
+
+            searchText.setText(value);
+        }
+
     }
 
     public void closeKeyboard() {

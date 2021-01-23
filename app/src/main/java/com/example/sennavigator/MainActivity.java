@@ -34,5 +34,11 @@ public class MainActivity extends FragmentActivity {
             Intent intent = new Intent(MainActivity.this, PlanningActivity.class);
             startActivity(intent);
         });
+
+        Button btnListMap = findViewById(R.id.btnLista);
+        btnListMap.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ListActivity.class);
+            startActivity(intent);
+        });
     }
 }
