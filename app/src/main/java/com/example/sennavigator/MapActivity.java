@@ -2,6 +2,7 @@ package com.example.sennavigator;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -35,6 +36,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +46,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -63,6 +67,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap googleMap;
     private Location currentLocation;
     private final List<LatLng> listPoints = new ArrayList<>();
+    private ArrayList<LatLng> values1 = new ArrayList<>();
 
     private MarkerOptions markerOptions;
 
@@ -242,6 +247,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             googleMap.clear();
             return;
         }
+        addDataToList(latLng);
 
         listPoints.add(latLng);
         markerOptions.position(latLng);
@@ -369,5 +375,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             super.onPostExecute(lists);
         }
+     }
+    private void loadDataList() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("list", null);
+        Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
+        values1 = gson.fromJson(json, type);
+    }
+
+    private void addDataToList(LatLng latLng) {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+
+        loadDataList();
+        values1.add(latLng);
+
+        String json = gson.toJson(values1);
+        editor.putString("list", json);
+        editor.apply();
     }
 }

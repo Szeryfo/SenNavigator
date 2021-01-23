@@ -1,17 +1,24 @@
 package com.example.sennavigator;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+
 public class ListActivity extends AppCompatActivity {
 
      ListView listView;
+     ArrayList<LatLng> values1 = new ArrayList<>();
 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
@@ -20,25 +27,26 @@ public class ListActivity extends AppCompatActivity {
 
           listView = findViewById(R.id.listView);
 
-          String[] values = new String[] {
-                  "Dom","Rodzina","Sklep","Garaż",
-                  "5","6","7","8",
-                  "9","10","11","12",
-                  "13","14","15","16"
-          };
+          loadDataList();
 
-          ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
+          ArrayAdapter<LatLng> arrayAdapter = new ArrayAdapter<>(this,
                   android.R.layout.simple_list_item_1,
-                  android.R.id.text1, values);
+                  android.R.id.text1, values1);
 
           listView.setAdapter(arrayAdapter);
 
           listView.setOnItemClickListener((parent, view, position, id) -> {
-           //    if (id == 0) {
                     Intent intent = new Intent(view.getContext(), MapActivity.class);
-                    intent.putExtra("string",values[(int) id]);
+                    intent.putExtra("string", values1.get((int) id).toString());
                     startActivity(intent);
 
           });
+     }
+     private void loadDataList() {
+          SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+          Gson gson = new Gson();
+          String json = sharedPreferences.getString("list", null);
+          Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
+          values1 = gson.fromJson(json, type);
      }
 }
