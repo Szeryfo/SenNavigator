@@ -2,6 +2,7 @@ package com.example.sennavigator;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -32,6 +33,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -155,7 +157,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             googleMap.getUiSettings().setMyLocationButtonEnabled(false);
 
             googleMap.setOnMapLongClickListener(this::setPointsAndRoad);
-
+            googleMap.setOnMarkerClickListener(marker -> {
+                Intent intent = new Intent(MapActivity.this, MarkerActivity.class);
+                intent.putExtra("string", marker.getPosition());
+                startActivity(intent);
+                return false;
+            });
             init();
         }
     }
