@@ -35,8 +35,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +43,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -66,9 +63,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap googleMap;
     private Location currentLocation;
     private final List<LatLng> listPoints = new ArrayList<>();
-    private ArrayList<LatLng> values1 = new ArrayList<>();
 
     private MarkerOptions markerOptions = new MarkerOptions();
+
+    private DataList dataList;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -78,8 +76,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getLocationPermission();
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            DataList dataList = (DataList) extras.get("DataList");
-            searchText.setText(dataList.getNazwa());
+            dataList = (DataList) extras.get("DataList");
         }
     }
 
@@ -182,6 +179,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         currentLocation = (Location) task.getResult();
                         if (currentLocation != null) {
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), "Moja lokalizacja");
+                            if (dataList != null) {
+                                setPointsAndRoad(dataList.getPozycja());
+                            }
                         }
                     } else {
                         Log.d(TAG, "onComplete: Nie znaleziono lokalizacji");
@@ -377,4 +377,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             super.onPostExecute(lists);
         }
      }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            Intent intent = new Intent(MapActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
 }

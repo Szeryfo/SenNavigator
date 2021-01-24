@@ -86,5 +86,4 @@ public class MarkerActivity  extends FragmentActivity {
         editor.putString("list", json);
         editor.apply();
     }
-
 }
