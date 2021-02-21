@@ -35,6 +35,9 @@ public class ListActivity extends AppCompatActivity {
                   android.R.layout.simple_list_item_1,
                   android.R.id.text1);
           for (Data data : placeList) {
+               if(data.getName() == null){
+                    return;
+               }
                arrayAdapter.add(data.getName());
           }
           listView.setAdapter(arrayAdapter);

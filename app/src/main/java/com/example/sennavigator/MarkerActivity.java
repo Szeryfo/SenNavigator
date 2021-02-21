@@ -18,10 +18,8 @@ import java.util.ArrayList;
 
 public class MarkerActivity  extends FragmentActivity {
 
-    private EditText name;
     private LatLng position;
     private ArrayList<Data> placeList = new ArrayList<>();
-    private Data data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +36,7 @@ public class MarkerActivity  extends FragmentActivity {
         TextView pozycja = findViewById(R.id.pozycja);
         pozycja.setText(position.toString());
 
-        name = findViewById(R.id.nazwa);
+        EditText name = findViewById(R.id.nazwa);
 
 
         Button btnMap = findViewById(R.id.powrót);
@@ -49,7 +47,7 @@ public class MarkerActivity  extends FragmentActivity {
 
         Button btnSettings = findViewById(R.id.zapisz);
         btnSettings.setOnClickListener(v -> {
-            data = new Data(null,null);
+            Data data = new Data(null,null);
             data.setName(name.getText().toString());
             data.setPosition(position);
             //zapis do jsona
