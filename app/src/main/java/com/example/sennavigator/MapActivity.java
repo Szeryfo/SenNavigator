@@ -67,6 +67,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private MarkerOptions markerOptions = new MarkerOptions();
 
     private DataList dataList;
+    private int delay = 10;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -137,7 +138,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         googleMap = gMap;
         markerOptions = new MarkerOptions();
 
-
         if (mLocationPermissionGranted) {
             getDeviceLocation();
 
@@ -154,6 +154,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 intent.putExtra("pozycja", marker.getPosition());
                 startActivity(intent);
                 return false;
+            });
+            googleMap.setOnMyLocationChangeListener(location -> {
+                if (listPoints.size() == 0) {
+                    return;
+                }
+                if (delay == 0) {
+                    Log.d(TAG, "location: Odświeżenie trasy");
+                    currentLocation = location;
+                    drawDirection();
+                    delay = 10;
+                } else delay--;
             });
             init();
         }
@@ -243,22 +254,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
     private void setPointsAndRoad(LatLng latLng) {
         if (listPoints.size() == 1) {
             listPoints.clear();
             googleMap.clear();
             return;
         }
-
         listPoints.add(latLng);
         markerOptions.position(latLng);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         googleMap.addMarker(markerOptions);
 
-            String url = getRequestUrl(listPoints.get(0),new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-            MapActivity.TaskRequestDirections taskRequestDirections = new MapActivity.TaskRequestDirections();
-            taskRequestDirections.execute(url);
+        drawDirection();
+    }
 
+    private void drawDirection() {
+        googleMap.clear();
+        googleMap.addMarker(markerOptions);
+        String url = getRequestUrl(listPoints.get(0),new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+        MapActivity.TaskRequestDirections taskRequestDirections = new MapActivity.TaskRequestDirections();
+        taskRequestDirections.execute(url);
     }
 
     private String getRequestUrl(LatLng origin, LatLng dest) {
@@ -350,6 +366,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             ArrayList points;
 
             PolylineOptions polylineOptions = null;
+
 
             for (List<HashMap<String, String>> path : lists) {
                 points = new ArrayList();

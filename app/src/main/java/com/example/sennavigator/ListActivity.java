@@ -3,9 +3,6 @@ package com.example.sennavigator;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -20,26 +17,24 @@ import java.util.ArrayList;
 
 public class ListActivity extends AppCompatActivity {
 
-     ListView listView;
-     ArrayList<DataList> values1 = new ArrayList<>();
-     Button button;
+     public ArrayList<DataList> placeList = new ArrayList<>();
 
-     boolean longClick;
+     private boolean longClick;
 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
           super.onCreate(savedInstanceState);
           setContentView(R.layout.activity_list);
 
-          listView = findViewById(R.id.listView);
-          button = findViewById(R.id.powrót);
+          ListView listView = findViewById(R.id.listView);
+          Button button = findViewById(R.id.powrót);
 
           loadDataList();
 
           ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
                   android.R.layout.simple_list_item_1,
                   android.R.id.text1);
-          for (DataList dataList: values1) {
+          for (DataList dataList: placeList) {
                arrayAdapter.add(dataList.getNazwa());
           }
           listView.setAdapter(arrayAdapter);
@@ -47,12 +42,12 @@ public class ListActivity extends AppCompatActivity {
           listView.setOnItemClickListener((parent, view, position, id) -> {
                if(!longClick) {
                     Intent intent = new Intent(view.getContext(), MapActivity.class);
-                    intent.putExtra("DataList", values1.get((int)id));
+                    intent.putExtra("DataList", placeList.get((int)id));
                     startActivity(intent);
                }
           });
           listView.setOnItemLongClickListener((parent, view, position, id) -> {
-               saveList((int) id);
+               deletePlace((int) id);
                Intent intent = new Intent(ListActivity.this, ListActivity.class);
                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                startActivity(intent);
@@ -60,13 +55,10 @@ public class ListActivity extends AppCompatActivity {
                return false;
           });
 
-          button.setOnClickListener(new View.OnClickListener() {
-               @Override
-               public void onClick(View v) {
-                    Intent intent = new Intent(ListActivity.this, MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-               }
+          button.setOnClickListener(v -> {
+               Intent intent = new Intent(ListActivity.this, MainActivity.class);
+               intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+               startActivity(intent);
           });
 
      }
@@ -75,18 +67,18 @@ public class ListActivity extends AppCompatActivity {
           Gson gson = new Gson();
           String json = sharedPreferences.getString("list", null);
           Type type = new TypeToken<ArrayList<DataList>>() {}.getType();
-          values1 = gson.fromJson(json, type);
+          placeList = gson.fromJson(json, type);
      }
 
-     private void saveList(int id) {
+     private void deletePlace(int id) {
           SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
           SharedPreferences.Editor editor = sharedPreferences.edit();
           Gson gson = new Gson();
 
           loadDataList();
-          values1.remove(id);
+          placeList.remove(id);
 
-          String json = gson.toJson(values1);
+          String json = gson.toJson(placeList);
           editor.putString("list", json);
           editor.apply();
      }
