@@ -24,7 +24,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.825"
+        app:layout_constraintVertical_bias="0.687"
         tools:ignore="MissingConstraints" />
 
     <Button
@@ -42,9 +42,10 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/btnPlanowanie"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.18"
+        app:layout_constraintVertical_bias="0.57"
         tools:ignore="MissingConstraints" />
 
     <Button
@@ -62,50 +63,10 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.234"
-        tools:ignore="MissingConstraints" />
-
-    <Button
-        android:id="@+id/btnSettings"
-        android:layout_width="257dp"
-        android:layout_height="82dp"
-        android:layout_marginStart="77dp"
-        android:layout_marginLeft="77dp"
-        android:layout_marginEnd="77dp"
-        android:layout_marginRight="77dp"
-        android:background="@drawable/custom_button"
-        android:text="Ustawienia"
-        android:textColor="@color/black"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnPlanowanie"
-        app:layout_constraintVertical_bias="0.118"
-        tools:ignore="MissingConstraints" />
-
-    <Button
-        android:id="@+id/btnAutor"
-        android:layout_width="257dp"
-        android:layout_height="82dp"
-        android:layout_marginStart="77dp"
-        android:layout_marginLeft="77dp"
-        android:layout_marginEnd="77dp"
-        android:layout_marginRight="77dp"
-        android:background="@drawable/custom_button"
-        android:text="o autorze"
-        android:textColor="@color/black"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.631"
+        app:layout_constraintVertical_bias="0.409"
         tools:ignore="MissingConstraints" />
 
 

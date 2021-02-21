@@ -23,12 +23,6 @@ public class MainActivity extends FragmentActivity {
             startActivity(intent);
         });
 
-        Button btnSettings = findViewById(R.id.btnSettings);
-        btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(intent);
-        });
-
         Button btnPlanningMap = findViewById(R.id.btnPlanowanie);
         btnPlanningMap.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PlanningActivity.class);
