@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class ListActivity extends AppCompatActivity {
 
-     public ArrayList<DataList> placeList = new ArrayList<>();
+     public ArrayList<Data> placeList = new ArrayList<>();
 
      private boolean longClick;
 
@@ -34,8 +34,8 @@ public class ListActivity extends AppCompatActivity {
           ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
                   android.R.layout.simple_list_item_1,
                   android.R.id.text1);
-          for (DataList dataList: placeList) {
-               arrayAdapter.add(dataList.getNazwa());
+          for (Data data : placeList) {
+               arrayAdapter.add(data.getName());
           }
           listView.setAdapter(arrayAdapter);
 
@@ -66,7 +66,7 @@ public class ListActivity extends AppCompatActivity {
           SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
           Gson gson = new Gson();
           String json = sharedPreferences.getString("list", null);
-          Type type = new TypeToken<ArrayList<DataList>>() {}.getType();
+          Type type = new TypeToken<ArrayList<Data>>() {}.getType();
           placeList = gson.fromJson(json, type);
      }
 

@@ -66,7 +66,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private MarkerOptions markerOptions = new MarkerOptions();
 
-    private DataList dataList;
+    private Data data;
     private int delay = 10;
 
     @Override
@@ -77,7 +77,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getLocationPermission();
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            dataList = (DataList) extras.get("DataList");
+            data = (Data) extras.get("DataList");
         }
     }
 
@@ -190,8 +190,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         currentLocation = (Location) task.getResult();
                         if (currentLocation != null) {
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), "Moja lokalizacja");
-                            if (dataList != null) {
-                                setPointsAndRoad(dataList.getPozycja());
+                            if (data != null) {
+                                setPointsAndRoad(data.getPosition());
                             }
                         }
                     } else {

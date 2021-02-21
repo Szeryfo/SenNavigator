@@ -18,32 +18,27 @@ import java.util.ArrayList;
 
 public class MarkerActivity  extends FragmentActivity {
 
-    private TextView pozycja;
-    private EditText nazwa;
-    private Bundle extras;
-
+    private EditText name;
     private LatLng position;
-    private ArrayList<DataList> values1 = new ArrayList<>();
-    private DataList dataList;
-
-
+    private ArrayList<Data> placeList = new ArrayList<>();
+    private Data data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_marker);
 
-        extras = getIntent().getExtras();
+        Bundle extras = getIntent().getExtras();
         position =(LatLng) extras.get("pozycja");
 
         init();
     }
 
     private void init(){
-        pozycja = findViewById(R.id.pozycja);
+        TextView pozycja = findViewById(R.id.pozycja);
         pozycja.setText(position.toString());
 
-        nazwa = findViewById(R.id.nazwa);
+        name = findViewById(R.id.nazwa);
 
 
         Button btnMap = findViewById(R.id.powrót);
@@ -54,11 +49,11 @@ public class MarkerActivity  extends FragmentActivity {
 
         Button btnSettings = findViewById(R.id.zapisz);
         btnSettings.setOnClickListener(v -> {
-            dataList = new DataList(null,null);
-            dataList.setNazwa(nazwa.getText().toString());
-            dataList.setPozycja(position);
+            data = new Data(null,null);
+            data.setName(name.getText().toString());
+            data.setPosition(position);
             //zapis do jsona
-            addDataToList(dataList);
+            addDataToList(data);
 
 
             Intent intent = new Intent(MarkerActivity.this, ListActivity.class);
@@ -70,19 +65,19 @@ public class MarkerActivity  extends FragmentActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = sharedPreferences.getString("list", null);
-        Type type = new TypeToken<ArrayList<DataList>>() {}.getType();
-        values1 = gson.fromJson(json, type);
+        Type type = new TypeToken<ArrayList<Data>>() {}.getType();
+        placeList = gson.fromJson(json, type);
     }
 
-    private void addDataToList(DataList dataList) {
+    private void addDataToList(Data data) {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
 
         loadDataList();
-        values1.add(dataList);
+        placeList.add(data);
 
-        String json = gson.toJson(values1);
+        String json = gson.toJson(placeList);
         editor.putString("list", json);
         editor.apply();
     }
