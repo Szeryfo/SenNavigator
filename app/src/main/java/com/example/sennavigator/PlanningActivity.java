@@ -48,12 +48,10 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
     private static final float ZOOM = 12f;
     private static final LatLng latLng = new LatLng(54.19, 16.18);
 
-    private AutoCompleteTextView searchText;
+    private String searchText;
 
     private final ArrayList<LatLng> listPoints = new ArrayList<>();
     private MarkerOptions markerOptions;
-    private Polyline polyline;
-
     private GoogleMap googleMap;
 
 
@@ -61,7 +59,6 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_planning);
-        searchText = findViewById(R.id.input_search);
         initMap();
     }
 
@@ -83,17 +80,20 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void init() {
         Log.d(TAG, "init: initalizacja");
-        searchText.setOnEditorActionListener((v, actionId, event) -> {
+
+        AutoCompleteTextView autoCompleteTextView = findViewById(R.id.input_search);
+        autoCompleteTextView.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH
                     || actionId == EditorInfo.IME_ACTION_DONE
                     || event.getAction() == KeyEvent.ACTION_DOWN
                     || event.getAction() == KeyEvent.KEYCODE_ENTER) {
+                searchText = autoCompleteTextView.getText().toString();
                 geoLocate();
-                searchText.setText(null);
+                autoCompleteTextView.setText(null);
             }
             return false;
         });
-        searchText.setOnFocusChangeListener((v, hasFocus) -> {
+        autoCompleteTextView.setOnFocusChangeListener((v, hasFocus) -> {
             Log.d(TAG, "setOnFocusChangeListener");
             this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         });
@@ -108,7 +108,7 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
     private void geoLocate() {
         Log.d(TAG, "geoLocate: Wyszukiwanie");
         closeKeyboard();
-        String search = searchText.getText().toString();
+        String search = searchText;
 
         Geocoder geocoder = new Geocoder(PlanningActivity.this);
         List<Address> list = new ArrayList<>();

@@ -51,8 +51,7 @@ public class MarkerActivity  extends FragmentActivity {
             data.setName(name.getText().toString());
             data.setPosition(position);
             //zapis do jsona
-            addDataToList(data);
-
+            addPlace(data);
 
             Intent intent = new Intent(MarkerActivity.this, ListActivity.class);
             startActivity(intent);
@@ -67,7 +66,7 @@ public class MarkerActivity  extends FragmentActivity {
         placeList = gson.fromJson(json, type);
     }
 
-    private void addDataToList(Data data) {
+    private void addPlace(Data data) {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
