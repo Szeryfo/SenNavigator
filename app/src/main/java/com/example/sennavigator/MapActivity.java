@@ -8,7 +8,11 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -68,6 +72,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private Data data;
     private int delay = 10;
+    private double distance;
+
+    private SoundPool soundPool;
+    private int doszedlesDoCelu,oddalaszSieOdCelu;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -124,7 +132,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Address address = list.get(0);
 
             Log.d(TAG, "geoLocate: Znaleziono adres: " + address.toString());
-            // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
             setPointsAndRoad(new LatLng(address.getLatitude(), address.getLongitude()));
 
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), address.getAddressLine(0));
@@ -132,7 +139,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onMapReady(GoogleMap gMap) {
+    public void onMapReady(GoogleMap gMap)  {
         Toast.makeText(this, "Wyświetlenie mapy", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "onMapReady: Wyświetlenie mapy");
         googleMap = gMap;
@@ -161,12 +168,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
                 if (delay == 0) {
                     Log.d(TAG, "location: Odświeżenie trasy");
+                    double oldDistance = distance;
                     currentLocation = location;
                     drawDirection();
                     delay = 10;
+                    Log.d(TAG, String.valueOf(distance));
+                    if (oldDistance<distance) {
+                        Log.d(TAG, "location: Oddalasz się od celu");
+                        Toast.makeText(this, "Oddalasz się od celu", Toast.LENGTH_SHORT).show();
+                        soundPool.play(oddalaszSieOdCelu, 1, 1, 0, 0, 1);
+                    } else if (distance< 200) {
+                        Log.d(TAG, "location: jesteś na miejscu");
+                        Toast.makeText(this, "jesteś na miejscu", Toast.LENGTH_SHORT).show();
+                        soundPool.play(doszedlesDoCelu, 1, 1, 0, 0, 1);
+                        distance = 0;
+                        listPoints.clear();
+                        googleMap.clear();
+                    }
                 } else delay--;
             });
             init();
+            setSounds();
         }
     }
 
@@ -363,13 +385,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
 
-            ArrayList points;
+            ArrayList points = new ArrayList();
 
             PolylineOptions polylineOptions = null;
+            distance = 0;
 
 
             for (List<HashMap<String, String>> path : lists) {
-                points = new ArrayList();
                 polylineOptions = new PolylineOptions();
 
                 for (HashMap<String, String> point : path) {
@@ -386,6 +408,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             if (polylineOptions != null) {
                 googleMap.addPolyline(polylineOptions);
+
+                for (int i=0; points.size()-1 > i; i++){
+                    Location location = new Location("");
+                    location.setLatitude(polylineOptions.getPoints().get(i).latitude);
+                    location.setLongitude(polylineOptions.getPoints().get(i).longitude);
+
+                    Location locationSecond = new Location("");
+                    locationSecond.setLatitude(polylineOptions.getPoints().get(i+1).latitude);
+                    locationSecond.setLongitude(polylineOptions.getPoints().get(i+1).longitude);
+
+                    distance += location.distanceTo(locationSecond);
+                }
+
             } else {
                 Toast.makeText(getApplicationContext(), "Nie znaleziono trasy", Toast.LENGTH_SHORT).show();
             }
@@ -405,5 +440,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void setSounds() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+
+            soundPool = new SoundPool.Builder()
+                    .setMaxStreams(2)
+                    .setAudioAttributes(audioAttributes)
+                    .build();
+        } else {
+            soundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
+        }
+
+        doszedlesDoCelu = soundPool.load(this, R.raw.doszedles_do_celu, 1);
+        oddalaszSieOdCelu = soundPool.load(this, R.raw.oddalasz_sie_od_celu, 1);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        soundPool.release();
+        soundPool = null;
     }
 }
