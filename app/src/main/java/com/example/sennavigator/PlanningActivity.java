@@ -51,7 +51,6 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
     private String searchText;
 
     private final ArrayList<LatLng> listPoints = new ArrayList<>();
-    private MarkerOptions markerOptions;
     private GoogleMap googleMap;
 
 
@@ -70,8 +69,6 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         googleMap = gMap;
         googleMap.getUiSettings().setMyLocationButtonEnabled(false);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
-
-        markerOptions = new MarkerOptions();
 
         googleMap.setOnMapLongClickListener(this::setPointsAndRoad);
 
@@ -98,6 +95,7 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
             this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         });
     }
+
     private void initMap() {
         Log.d(TAG, "initMap: Initializacja mapy");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -107,7 +105,10 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void geoLocate() {
         Log.d(TAG, "geoLocate: Wyszukiwanie");
-        closeKeyboard();
+
+        InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+
         String search = searchText;
 
         Geocoder geocoder = new Geocoder(PlanningActivity.this);
@@ -127,19 +128,16 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
             // Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
             setPointsAndRoad(new LatLng(address.getLatitude(), address.getLongitude()));
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), address.getAddressLine(0));
+            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()));
         }
     }
 
-    public void closeKeyboard() {
-        InputMethodManager inputMethodManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-    }
 
-    private void moveCamera(LatLng latLng, String title) {
+    private void moveCamera(LatLng latLng) {
         Log.d(TAG, "moveCamera: Przeniesienie kamery na: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
     }
+
     private void setPointsAndRoad(LatLng latLng) {
         if (listPoints.size() == 2) {
             listPoints.clear();
@@ -148,6 +146,9 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         listPoints.add(latLng);
+
+        MarkerOptions markerOptions = new MarkerOptions();
+
         markerOptions.position(latLng);
         if (listPoints.size() == 1) {
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
