@@ -175,39 +175,6 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
         return "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param;
     }
 
-    private String requestDirection(String reqUrl) throws IOException {
-        String responseString = "";
-        InputStream inputStream = null;
-        HttpURLConnection httpURLConnection = null;
-        try {
-            URL url = new URL(reqUrl);
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.connect();
-
-            inputStream = httpURLConnection.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-            StringBuilder stringBuffer = new StringBuilder();
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuffer.append(line);
-            }
-
-            responseString = stringBuffer.toString();
-            bufferedReader.close();
-            inputStreamReader.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-            httpURLConnection.disconnect();
-        }
-        return responseString;
-    }
 
     public class TaskRequestDirections extends AsyncTask<String, Void, String> {
 
@@ -228,6 +195,40 @@ public class PlanningActivity extends AppCompatActivity implements OnMapReadyCal
 
             TaskParser taskParser = new TaskParser();
             taskParser.execute(s);
+        }
+
+        private String requestDirection(String reqUrl) throws IOException {
+            String responseString = "";
+            InputStream inputStream = null;
+            HttpURLConnection httpURLConnection = null;
+            try {
+                URL url = new URL(reqUrl);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.connect();
+
+                inputStream = httpURLConnection.getInputStream();
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                StringBuilder stringBuffer = new StringBuilder();
+                String line = "";
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuffer.append(line);
+                }
+
+                responseString = stringBuffer.toString();
+                bufferedReader.close();
+                inputStreamReader.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                httpURLConnection.disconnect();
+            }
+            return responseString;
         }
     }
 
